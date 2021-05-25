@@ -14,10 +14,11 @@ var wg sync.WaitGroup
 
 func main() {
 	pool = make(chan int, 2000)
-	wg.Add(101)
+	wg.Add(1)
 	bT := time.Now()
 	go producer()
 	for i := 0; i < 1000; i++ {
+		wg.Add(1)
 		go consumer()
 	}
 	//time.Sleep(time.Second * 10)
