@@ -32,13 +32,17 @@ MDN号码的结构如下：CC + MAC + H0 H1 H2 H3 + ABCD其中：
 
 借助redis的hash类型进行缓存。几十万数据存一个hash会导致一个该键太大，影响查询性能。可以按照前3位MAC码进行分片，每个分片里面最多存储1w个键值对。
 
-# 数据来源
-
 如果能购买或者下载到一些初始数据就更好了。
 
-- [归属地查询](http://www.buybook.com.cn/) 数据比较规范。就是有点老了。而且号段不全
-- [138查询](https://ip138.com/sj/) 可以免费查询，同时也开放了api查询
+- [buybook归属地查询](http://www.buybook.com.cn/) 数据比较规范。就是有点老了。而且号段不全
+- [138手机归属地查询](https://ip138.com/sj/) 可以免费查询，同时也开放了api查询
+- [360手机归属地查询](http://cx.shouji.360.cn/phonearea.php?number=1360150) 可以免费抓取
 - [易源数据](https://www.showapi.com/apiGateway/view/6) 提供api接口查询
 - [挖数据](https://www.wapi.cn/source/3.html) 有接口查询，并且可以购买归属地数据源
 - [聚合数据](https://www.juhe.cn/docs/api/id/11) 接口查询
 - [阿里云市场](https://www.aliyun.com/ss/?k=%E6%89%8B%E6%9C%BA%E5%8F%B7%E5%BD%92%E5%B1%9E%E5%9C%B0) 整合了很多三方接口
+
+# 新增46w+号段数据
+
+新增phone_sections.csv.zip文件为csv格式的zip压缩包。包含46w+的手机号段数据。数据主要来源于 [360手机归属地查询](http://cx.shouji.360.cn/phonearea.php?number=1360150)
+、[buybook归属地查询](http://www.buybook.com.cn/)、以及CSDN下载的部分数据，号段数据可能并不十分准确。
