@@ -12,7 +12,16 @@ import (
 	"time"
 )
 
-var pool chan int
+const (
+	UrlFmt   string = "http://cx.shouji.360.cn/phonearea.php?number=%d"
+	FileName string = "data.csv"
+)
+
+var (
+	pool chan int
+	wg   sync.WaitGroup
+	rw   sync.RWMutex
+)
 
 type RespResult struct {
 	Code int `json:"code"`
@@ -23,25 +32,30 @@ type RespResult struct {
 	} `json:"data"`
 }
 
-var wg sync.WaitGroup
-var rw sync.RWMutex
-
 func main() {
-	f, err := os.OpenFile("data.csv", os.O_RDWR, 0666)
-	if err != nil {
+	var (
+		f   *os.File
+		err error
+	)
+
+	if f, err = os.OpenFile(FileName, os.O_RDWR|os.O_TRUNC|os.O_CREATE, 0666); err != nil {
 		panic(err)
 	}
+
 	w := csv.NewWriter(f)
 	var header = []string{"section", "province", "city", "sp"}
-	w.Write(header)
+	_ = w.Write(header)
 	pool = make(chan int, 500)
-	wg.Add(1)
 	bT := time.Now()
-	go producer()
+
+	wg.Add(1)
+	go producer([]int{130})
+
 	for i := 0; i < 200; i++ {
 		wg.Add(1)
 		go consumer(w)
 	}
+
 	wg.Wait()
 	w.Flush()
 
@@ -50,6 +64,7 @@ func main() {
 }
 
 func consumer(w *csv.Writer) {
+	defer wg.Done()
 	var result []byte
 	var err error
 	var resp *http.Response
@@ -59,40 +74,25 @@ func consumer(w *csv.Writer) {
 		if !ok {
 			break
 		}
-		if resp, err = http.Get(fmt.Sprintf("http://cx.shouji.360.cn/phonearea.php?number=%d", sec)); err != nil {
+		if resp, err = http.Get(fmt.Sprintf(UrlFmt, sec)); err != nil {
 			fmt.Println(err.Error())
 			continue
 		}
 		result, err = ioutil.ReadAll(resp.Body)
 		err = json.Unmarshal(result, &r)
-		fmt.Println("consumer:", string(result))
+		//fmt.Println("consumer:", string(result))
 		rw.Lock()
-		w.Write([]string{strconv.Itoa(sec), r.Data.Province, r.Data.City, r.Data.Sp})
+		_ = w.Write([]string{strconv.Itoa(sec), r.Data.Province, r.Data.City, r.Data.Sp})
 		rw.Unlock()
 	}
-	wg.Done()
 }
 
-func producer() {
-
-	// 要采集的号段
-	section1 := []int{134}
-	section2 := []int{130}
-	section3 := []int{133}
-
-	var sections []int
-	sections = append(sections, section1...)
-	sections = append(sections, section2...)
-	sections = append(sections, section3...)
-	fmt.Println(len(sections))
-
+func producer(sections []int) {
+	defer wg.Done()
 	for _, section := range sections {
 		for i := 0; i < 10000; i++ {
-			//url = fmt.Sprintf("producer: http://cx.shouji.360.cn/phonearea.php?number=%d", section*10000+i)
-			//fmt.Println(url)
 			pool <- section*10000 + i
 		}
 	}
 	close(pool)
-	wg.Done()
 }
