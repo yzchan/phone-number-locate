@@ -35,8 +35,9 @@ MDN号码的结构如下：CC + MAC + H0 H1 H2 H3 + ABCD其中：
 如果能购买或者下载到一些初始数据就更好了。
 
 - [buybook归属地查询](http://www.buybook.com.cn/) 数据比较规范。就是有点老了。而且号段不全
-- [138手机归属地查询](https://ip138.com/sj/) 可以免费查询，同时也开放了api查询
+- [ip138手机归属地查询](https://ip138.com/sj/) 可以免费查询，同时也开放了api查询
 - [360手机归属地查询](http://cx.shouji.360.cn/phonearea.php?number=1360150) 可以免费抓取
+- [淘宝手机归属地查询](https://tcc.taobao.com/cc/json/mobile_tel_segment.htm?tel=13333333333) 淘宝免费归属地查询
 - [易源数据](https://www.showapi.com/apiGateway/view/6) 提供api接口查询
 - [挖数据](https://www.wapi.cn/source/3.html) 有接口查询，并且可以购买归属地数据源
 - [聚合数据](https://www.juhe.cn/docs/api/id/11) 接口查询
