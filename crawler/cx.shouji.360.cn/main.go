@@ -38,6 +38,7 @@ func (t *task) Task() {
 	var resp *http.Response
 	var err error
 	sec := atomic.LoadInt64(&t.sec)
+	// 使用Keep-Alive复用长链接可以提升不少性能，可惜该网站并不支持
 	if resp, err = http.Get(fmt.Sprintf(UrlFmt, sec)); err != nil {
 		fmt.Println(err)
 		return
