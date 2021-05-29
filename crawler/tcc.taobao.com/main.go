@@ -33,10 +33,10 @@ func (t *task) Task() {
 		return
 	}
 	//fmt.Println(len(string(body)))
-	if len(body) < 24 {
-		fmt.Println(string(body))
-		return
-	}
+	//if len(body) < 24 {
+	//	fmt.Println(string(body))
+	//	return
+	//}
 	ploc := t.p.Parse(string(body))
 	t.m.Lock()
 	_ = t.w.Write([]string{
