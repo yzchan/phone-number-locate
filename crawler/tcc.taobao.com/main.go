@@ -3,52 +3,51 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
+	taobao "phone-number-locate/query/tcc.taobao.com"
 	"phone-number-locate/work"
-	"rogchap.com/v8go"
 	"sync"
 	"sync/atomic"
 	"time"
 )
 
 const (
-	UrlFmt   string = "https://tcc.taobao.com/cc/json/mobile_tel_segment.htm?tel=%d0000"
 	FileName string = "data.csv"
 )
 
-type RespResult struct {
-	Code int `json:"code"`
-	Data struct {
-		Province string `json:"province"`
-		City     string `json:"city"`
-		Sp       string `json:"sp"`
-	} `json:"data"`
-}
-
 type task struct {
 	sec int64
+	m   sync.RWMutex
 	w   *csv.Writer
-	rw  sync.RWMutex
+	q   *taobao.Queryer
+	p   *taobao.StringParser
 }
 
 func (t *task) Task() {
-	var resp *http.Response
 	var err error
+	var body []byte
 	sec := atomic.LoadInt64(&t.sec)
-	if resp, err = http.Get(fmt.Sprintf(UrlFmt, sec)); err != nil {
+
+	if body, err = t.q.Request(fmt.Sprintf("%d0000", sec)); err != nil {
 		fmt.Println(err)
 		return
 	}
-	result, err := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(result))
-	// TODO 解析
-	//var r RespResult
-	//err = json.Unmarshal(result, &r)
-	//t.rw.Lock()
-	//_ = t.w.Write([]string{strconv.Itoa(int(sec)), r.Data.Province, r.Data.City, r.Data.Sp})
-	//t.rw.Unlock()
+	//fmt.Println(len(string(body)))
+	if len(body) < 24 {
+		fmt.Println(string(body))
+		return
+	}
+	ploc := t.p.Parse(string(body))
+	t.m.Lock()
+	_ = t.w.Write([]string{
+		ploc.Mts,
+		ploc.Province,
+		ploc.CatName,
+		ploc.AreaVid,
+		ploc.IspVid,
+		ploc.Carrier,
+	})
+	t.m.Unlock()
 }
 
 func main() {
@@ -62,9 +61,11 @@ func main() {
 
 	t := &task{
 		w: csv.NewWriter(f),
+		q: taobao.NewQueryer(),
+		p: taobao.NewStringParser(),
 	}
-	_ = t.w.Write([]string{"section", "province", "city", "sp"})
-	w := work.New(20)
+	_ = t.w.Write([]string{"mts", "province", "catName", "areaVid", "ispVid", "carrier"})
+	w := work.New(100)
 	sections := []int{130}
 	bT := time.Now()
 	for _, section := range sections {
@@ -77,19 +78,4 @@ func main() {
 	t.w.Flush()
 	eT := time.Since(bT)
 	fmt.Println("Run time: ", eT)
-}
-
-func testV8() {
-	result := `__GetZoneResult_ = {
-    mts:'1330000',
-    province:'广西',
-    catName:'中国电信',
-    telString:'13300000000',
-	areaVid:'30518',
-	ispVid:'3399685',
-	carrier:'广西电信'
-}`
-	ctx, _ := v8go.NewContext()
-	val, err := ctx.RunScript(result, "")
-	fmt.Println(val, err)
 }
