@@ -14,7 +14,8 @@ func NewV8Parser() *V8Parser {
 	return &V8Parser{ctx: ctx}
 }
 
-func (v *V8Parser) Parse(text string) PhoneLoc {
+func (v *V8Parser) Parse(body []byte) PhoneLoc {
+	text := string(body)
 	val, _ := v.ctx.RunScript(text, "")
 	encoded, _ := val.MarshalJSON()
 	var p PhoneLoc

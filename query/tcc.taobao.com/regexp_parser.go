@@ -1,6 +1,7 @@
 package taobao
 
 import (
+	"fmt"
 	"regexp"
 )
 
@@ -14,7 +15,9 @@ func NewRegexpParser() *RegexpParser {
 	}
 }
 
-func (r *RegexpParser) Parse(text string) PhoneLoc {
+func (r RegexpParser) Parse(body []byte) PhoneLoc {
+	fmt.Println("RegexpParser")
+	text:=string(body)
 	matched := r.re.FindStringSubmatch(text)
 	return PhoneLoc{
 		Mts:       matched[1],

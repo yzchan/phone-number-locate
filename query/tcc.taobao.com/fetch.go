@@ -13,10 +13,6 @@ const (
 	UrlFmt string = "https://tcc.taobao.com/cc/json/mobile_tel_segment.htm?tel=%s"
 )
 
-type Parser interface {
-	Parse(text string) PhoneLoc
-}
-
 type PhoneLoc struct {
 	Mts       string `json:"mts"`
 	Province  string `json:"province"`
@@ -28,13 +24,21 @@ type PhoneLoc struct {
 }
 
 type Queryer struct {
-	Enc *encoding.Decoder
+	Enc    *encoding.Decoder
+	Parser Parser
 }
 
 func NewQueryer() *Queryer {
 	return &Queryer{
-		Enc: simplifiedchinese.GBK.NewDecoder(),
+		Enc:    simplifiedchinese.GBK.NewDecoder(),
+		Parser: NewStringParser(),
 	}
+}
+
+var Instance *Queryer
+
+func init() {
+	Instance = NewQueryer()
 }
 
 func (q *Queryer) Fetch(phone string) (p PhoneLoc, err error) {
@@ -47,14 +51,11 @@ func (q *Queryer) Fetch(phone string) (p PhoneLoc, err error) {
 		return
 	}
 
-	var body []byte
-	if body, err = q.Request(phone); err != nil {
+	body, err := q.Request(phone)
+	if err != nil {
 		return
 	}
-	pr := NewStringParser() // 默认使用效率最高的string解析器
-	//pr := NewRegexpParser()
-	//pr := NewV8Parser()
-	p = pr.Parse(string(body))
+	p = q.Parser.Parse(body)
 	return
 }
 
@@ -70,4 +71,9 @@ func (q *Queryer) Request(phone string) (body []byte, err error) {
 		return
 	}
 	return
+}
+
+// Parser 解析器接口，用于解析接口返回的jsonp格式的数据
+type Parser interface {
+	Parse(body []byte) PhoneLoc
 }

@@ -20,12 +20,14 @@ const JsonpStr string = `__GetZoneResult_ = {
 func BenchmarkStringParser(b *testing.B) {
 	b.StopTimer()
 	p := NewStringParser()
+	data := []byte(JsonpStr)
 	rand.Seed(time.Now().UnixNano())
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		p.Parse(JsonpStr)
+		p.Parse(data)
 	}
 }
+
 //
 //func BenchmarkV8Parser(b *testing.B) {
 //	b.StopTimer()

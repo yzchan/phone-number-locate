@@ -11,11 +11,11 @@ func NewStringParser() *StringParser {
 	return &StringParser{}
 }
 
-func (s *StringParser) Parse(text string) (p PhoneLoc) {
-	if len(text) < 24 {
+func (s StringParser) Parse(body []byte) (p PhoneLoc) {
+	text := string(body[21 : len(body)-2])
+	if text == "" {
 		return
 	}
-	text = text[21 : len(text)-2]
 	text = strings.Replace(text, "'", "", -1)
 	text = strings.Replace(text, ",", "", -1)
 	text = strings.Replace(text, " ", "", -1)
