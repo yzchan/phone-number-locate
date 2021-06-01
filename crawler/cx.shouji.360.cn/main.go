@@ -2,45 +2,40 @@ package main
 
 import (
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
+	m360 "phone-number-locate/query/cx.shouji.360.cn"
 	"strconv"
 	"sync"
 	"time"
 )
 
-var pool chan int
-
-type RespResult struct {
-	Code int `json:"code"`
-	Data struct {
-		Province string `json:"province"`
-		City     string `json:"city"`
-		Sp       string `json:"sp"`
-	} `json:"data"`
-}
-
-var wg sync.WaitGroup
-var rw sync.RWMutex
+var (
+	FileName = "data.csv"
+	pool     chan int
+	rw       sync.RWMutex
+	wg       sync.WaitGroup
+	w        *csv.Writer
+)
 
 func main() {
-	f, err := os.OpenFile("data.csv", os.O_RDWR, 0666)
-	if err != nil {
+	var (
+		f   *os.File
+		err error
+	)
+	if f, err = os.OpenFile(FileName, os.O_RDWR|os.O_TRUNC|os.O_CREATE, 0666); err != nil {
 		panic(err)
 	}
-	w := csv.NewWriter(f)
+	w = csv.NewWriter(f)
 	var header = []string{"section", "province", "city", "sp"}
 	w.Write(header)
-	pool = make(chan int, 500)
+	pool = make(chan int, 200)
 	wg.Add(1)
 	bT := time.Now()
 	go producer()
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
-		go consumer(w)
+		go consumer()
 	}
 	wg.Wait()
 	w.Flush()
@@ -49,25 +44,20 @@ func main() {
 	fmt.Println("Run time: ", eT)
 }
 
-func consumer(w *csv.Writer) {
-	var result []byte
+func consumer() {
+	var loc m360.PhoneLoc
 	var err error
-	var resp *http.Response
-	var r RespResult
 	for {
 		sec, ok := <-pool
 		if !ok {
 			break
 		}
-		if resp, err = http.Get(fmt.Sprintf("http://cx.shouji.360.cn/phonearea.php?number=%d", sec)); err != nil {
-			fmt.Println(err.Error())
+		if loc, err = m360.Instance.Fetch(strconv.Itoa(sec)); err != nil {
+			fmt.Println(err)
 			continue
 		}
-		result, err = ioutil.ReadAll(resp.Body)
-		err = json.Unmarshal(result, &r)
-		fmt.Println("consumer:", string(result))
 		rw.Lock()
-		w.Write([]string{strconv.Itoa(sec), r.Data.Province, r.Data.City, r.Data.Sp})
+		_ = w.Write([]string{strconv.Itoa(sec), loc.Province, loc.City, loc.Sp})
 		rw.Unlock()
 	}
 	wg.Done()
@@ -77,8 +67,6 @@ func producer() {
 	sections := []int{130}
 	for _, section := range sections {
 		for i := 0; i < 10000; i++ {
-			//url = fmt.Sprintf("producer: http://cx.shouji.360.cn/phonearea.php?number=%d", section*10000+i)
-			//fmt.Println(url)
 			pool <- section*10000 + i
 		}
 	}
