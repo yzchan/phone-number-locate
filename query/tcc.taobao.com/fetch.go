@@ -13,6 +13,11 @@ const (
 	UrlFmt string = "https://tcc.taobao.com/cc/json/mobile_tel_segment.htm?tel=%s"
 )
 
+// Parser 解析器接口，用于解析接口返回的jsonp格式的数据
+type Parser interface {
+	Parse(body []byte) PhoneLoc
+}
+
 type PhoneLoc struct {
 	Mts       string `json:"mts"`
 	Province  string `json:"province"`
@@ -71,9 +76,4 @@ func (q *Queryer) Request(phone string) (body []byte, err error) {
 		return
 	}
 	return
-}
-
-// Parser 解析器接口，用于解析接口返回的jsonp格式的数据
-type Parser interface {
-	Parse(body []byte) PhoneLoc
 }
