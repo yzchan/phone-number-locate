@@ -35,7 +35,8 @@ type Queryer struct {
 
 func NewQueryer() *Queryer {
 	return &Queryer{
-		Parser: NewRegexpParser(),
+		//Parser: NewRegexpParser(),
+		Parser: NewGoQueryParser(),
 	}
 }
 

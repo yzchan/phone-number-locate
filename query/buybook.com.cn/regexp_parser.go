@@ -1,7 +1,6 @@
 package buybook
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -57,6 +56,5 @@ func (r RegexpParser) ParseAll(body []byte) (plist []PhoneLoc) {
 		p.Province, p.City, p.AreaCode, p.Postcode, p.Sp, p.SimCard = m[2], m[3], m[4], m[5], m[6], m[7]
 		plist = append(plist, p)
 	}
-	fmt.Println(plist)
 	return
 }
