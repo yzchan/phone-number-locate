@@ -1,3 +1,5 @@
+
+
 国内手机号归属地查询
 -----
 
@@ -42,6 +44,8 @@ MDN号码的结构如下：CC + MAC + H0 H1 H2 H3 + ABCD其中：
 - [挖数据](https://www.wapi.cn/source/3.html) 有接口查询，并且可以购买归属地数据源
 - [聚合数据](https://www.juhe.cn/docs/api/id/11) 接口查询
 - [阿里云市场](https://www.aliyun.com/ss/?k=%E6%89%8B%E6%9C%BA%E5%8F%B7%E5%BD%92%E5%B1%9E%E5%9C%B0) 整合了很多三方接口
+
+> 注：仓库 `crawler/` 目录中已提供上述接口的爬虫示例代码，可直接运行以快速生成初始数据文件。
 
 # 新增46w+号段数据
 
